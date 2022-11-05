@@ -20,6 +20,7 @@ import org.apache.maven.plugin.ExtensionRealmCache;
 import org.apache.maven.plugin.PluginArtifactsCache;
 import org.apache.maven.plugin.PluginRealmCache;
 import org.apache.maven.plugin.internal.PluginDependenciesResolver;
+import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectRealmCache;
 import org.apache.maven.project.artifact.MavenMetadataCache;
 
@@ -47,6 +48,9 @@ public class DefaultMavenComponentContributor implements IMavenComponentContribu
     binder.bind(ClassRealmManagerDelegate.class, EclipseClassRealmManagerDelegate.class,
         EclipseClassRealmManagerDelegate.ROLE_HINT);
     binder.bind(RepositoryListener.class, EclipseRepositoryListener.class, EclipseRepositoryListener.ROLE_HINT);
+    binder.bind(ProjectBuilder.class, EclipseProjectBuilder.class, null);
+    //TODO model cahce seems to be implemented by the RepositorySession.gectChae
+//    binder.bind(ModelCache.class, null, null);
 
   }
 

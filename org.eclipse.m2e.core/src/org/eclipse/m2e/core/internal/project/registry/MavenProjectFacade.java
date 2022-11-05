@@ -15,6 +15,7 @@ package org.eclipse.m2e.core.internal.project.registry;
 
 import java.io.File;
 import java.io.Serializable;
+import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -126,8 +127,15 @@ public class MavenProjectFacade implements IMavenProjectFacade, Serializable {
 
   private transient Map<String, Object> sessionProperties;
 
+  //we hold a soft reference to the project here, for the following reasons:
+  // 1) if the reference is already used somewhere it will be kept so we can respond fast
+  // 2) if the project becomes only weakly referenceable the JVM still keeps the reference around ( in contrast to a WeakReference) just in case we need it short after again
+  // 3) if memory demand is high, the JVM is still free to clear out our reference
+  private transient SoftReference<MavenProject> mavenProjectReference;
+
   public MavenProjectFacade(ProjectRegistryManager manager, IFile pom, MavenProject mavenProject,
       ResolverConfiguration resolverConfiguration) {
+    mavenProjectReference = new SoftReference<>(mavenProject);
     this.manager = manager;
     this.pom = pom;
     this.pomFile = ProjectRegistryManager.toJavaIoFile(pom);
@@ -273,12 +281,39 @@ public class MavenProjectFacade implements IMavenProjectFacade, Serializable {
    */
   @Override
   public MavenProject getMavenProject(IProgressMonitor monitor) throws CoreException {
-    return manager.getMavenProject(this, monitor);
+    if(mavenProjectReference != null) {
+      MavenProject mavenProject = mavenProjectReference.get();
+      if(mavenProject != null) {
+        return mavenProject;
+      }
+    }
+    MavenProject mavenProject = manager.getMavenProject(this, monitor);
+    if(mavenProject != null) {
+      mavenProjectReference = new SoftReference<>(mavenProject);
+    }
+    return mavenProject;
+  }
+
+  /**
+   * @return Returns the mavenProjectReference.
+   */
+  public SoftReference<MavenProject> getMavenProjectReference() {
+    return this.mavenProjectReference;
   }
 
   @Override
   public MavenProject getMavenProject() {
-    return manager.getMavenProject(this);
+    if(mavenProjectReference != null) {
+      MavenProject mavenProject = mavenProjectReference.get();
+      if(mavenProject != null) {
+        return mavenProject;
+      }
+    }
+    MavenProject mavenProject = manager.getMavenProject(this);
+    if(mavenProject != null) {
+      mavenProjectReference = new SoftReference<>(mavenProject);
+    }
+    return mavenProject;
   }
 
   @Override

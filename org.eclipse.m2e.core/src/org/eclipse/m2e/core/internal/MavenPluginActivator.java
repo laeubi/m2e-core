@@ -40,6 +40,7 @@ import org.apache.maven.project.DefaultProjectBuilder;
 import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.embedder.IMavenConfiguration;
 import org.eclipse.m2e.core.embedder.MavenModelManager;
+import org.eclipse.m2e.core.internal.embedder.PlexusContainerManager;
 import org.eclipse.m2e.core.internal.index.filter.ArtifactFilterManager;
 import org.eclipse.m2e.core.internal.launch.MavenRuntimeManagerImpl;
 import org.eclipse.m2e.core.internal.lifecyclemapping.LifecycleMappingFactory;
@@ -177,6 +178,10 @@ public class MavenPluginActivator extends Plugin {
   /** for use by unit tests */
   public ProjectRegistryRefreshJob getProjectManagerRefreshJob() {
     return getService(ProjectRegistryRefreshJob.class);
+  }
+
+  public PlexusContainerManager getContainerManager() {
+    return getService(PlexusContainerManager.class);
   }
 
   public static String getVersion() {
