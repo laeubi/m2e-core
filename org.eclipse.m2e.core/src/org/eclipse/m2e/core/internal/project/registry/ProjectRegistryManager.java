@@ -95,6 +95,7 @@ import org.eclipse.m2e.core.internal.IMavenToolbox;
 import org.eclipse.m2e.core.internal.Messages;
 import org.eclipse.m2e.core.internal.URLConnectionCaches;
 import org.eclipse.m2e.core.internal.embedder.MavenExecutionContext;
+import org.eclipse.m2e.core.internal.embedder.MavenProperties;
 import org.eclipse.m2e.core.internal.embedder.PlexusContainerManager;
 import org.eclipse.m2e.core.internal.lifecyclemapping.LifecycleMappingFactory;
 import org.eclipse.m2e.core.internal.lifecyclemapping.LifecycleMappingResult;
@@ -933,6 +934,7 @@ public class ProjectRegistryManager implements ISaveParticipant {
       }
       userProperties.putAll(addProperties);
     }
+    userProperties.putAll(resolverConfiguration.getUserProperties());
 
     // eclipse workspace repository implements both workspace dependency resolution
     // and inter-module dependency resolution for multi-module projects.
@@ -941,7 +943,7 @@ public class ProjectRegistryManager implements ISaveParticipant {
     request.setWorkspaceReader(getWorkspaceReader(state, pom, resolverConfiguration));
     if(pom != null && pom.getLocation() != null) {
       request.setMultiModuleProjectDirectory(
-          PlexusContainerManager.computeMultiModuleProjectDirectory(pom.getLocation().toFile()));
+          MavenProperties.computeMultiModuleProjectDirectory(pom.getLocation().toFile()));
     }
 
     return request;
