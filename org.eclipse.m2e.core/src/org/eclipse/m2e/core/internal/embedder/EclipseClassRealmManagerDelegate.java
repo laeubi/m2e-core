@@ -44,7 +44,7 @@ public class EclipseClassRealmManagerDelegate implements ClassRealmManagerDelega
 
   private final PlexusContainer plexus;
 
-  private static final ArtifactVersion currentBuildApiVersion;
+  private static final ArtifactVersion legacytBuildApiVersion;
 
   static {
     Properties props = new Properties();
@@ -55,7 +55,7 @@ public class EclipseClassRealmManagerDelegate implements ClassRealmManagerDelega
     } catch(IOException e) {
       // TODO log
     }
-    currentBuildApiVersion = new DefaultArtifactVersion(props.getProperty("api.version", "0.0.5")); //$NON-NLS-1$ //$NON-NLS-2$
+    legacytBuildApiVersion = new DefaultArtifactVersion(props.getProperty("api.version", "0.0.5")); //$NON-NLS-1$ //$NON-NLS-2$
   }
 
   @Inject
@@ -73,24 +73,37 @@ public class EclipseClassRealmManagerDelegate implements ClassRealmManagerDelega
       realm.importFrom(coreRealm, "org.codehaus.plexus.util.Scanner"); //$NON-NLS-1$
 
       realm.importFrom(coreRealm, "org.sonatype.plexus.build.incremental"); //$NON-NLS-1$
+      realm.importFrom(coreRealm, "org.codehaus.plexus.build"); //$NON-NLS-1$
     }
   }
 
   private boolean supportsBuildApi(List<ClassRealmConstituent> constituents) {
+    boolean hasBuildApi = false;
     for(Iterator<ClassRealmConstituent> it = constituents.iterator(); it.hasNext();) {
       ClassRealmConstituent constituent = it.next();
       if("org.sonatype.plexus".equals(constituent.getGroupId()) //$NON-NLS-1$
           && "plexus-build-api".equals(constituent.getArtifactId())) { //$NON-NLS-1$
         ArtifactVersion version = new DefaultArtifactVersion(constituent.getVersion());
-        boolean compatible = currentBuildApiVersion.compareTo(version) >= 0;
-        if(compatible) {
+        if(legacytBuildApiVersion.compareTo(version) >= 0) {
           // removing the JAR from the plugin realm to prevent discovery of the DefaultBuildContext
           it.remove();
+          hasBuildApi = true;
         }
-        return compatible;
+      }
+      if("org.codehaus.plexus.build".equals(constituent.getGroupId()) //$NON-NLS-1$
+          && "plexus-build-api".equals(constituent.getArtifactId())) { //$NON-NLS-1$
+        ArtifactVersion version = new DefaultArtifactVersion(constituent.getVersion());
+        // currently we support only version 1, we want to design the API that it is always backward compatible for the client
+        // so even if we implements Version X and the client Version < X it can be used!
+        // for incompatible changes we need to use a different package then
+        if(version.getMajorVersion() >= 1 && version.getMajorVersion() <= 2) {
+          // removing the JAR from the plugin realm to prevent discovery of the default components
+          it.remove();
+          hasBuildApi = true;
+        }
       }
     }
-    return false;
+    return hasBuildApi;
   }
 
 }

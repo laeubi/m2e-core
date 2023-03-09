@@ -1,0 +1,70 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.eclipse.m2e</groupId>
+		<artifactId>m2e-core</artifactId>
+		<version>2.1.0-SNAPSHOT</version>
+	</parent>
+	
+	<groupId>org.eclipse.m2e.tests.plugin</groupId>
+	<artifactId>org.eclipse.m2e.tests.plugin</artifactId>
+	<version>1.0.0</version>
+	
+	<packaging>maven-plugin</packaging>
+	<name>M2Eclipse Test Maven Plugin</name>
+	<description>This is a mavenplugin that implements some mojos used in m2e tests to test certain mojo behaviour.</description>
+	<properties>
+	    <maven.compiler.source>11</maven.compiler.source>
+	    <maven.compiler.target>11</maven.compiler.target>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.maven</groupId>
+			<artifactId>maven-core</artifactId>
+			<version>3.8.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.maven</groupId>
+			<artifactId>maven-plugin-api</artifactId>
+			<version>3.8.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.maven.plugin-tools</groupId>
+			<artifactId>maven-plugin-annotations</artifactId>
+			<version>3.8.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.plexus</groupId>
+			<artifactId>plexus-build-api</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.sonatype.plexus</groupId>
+			<artifactId>plexus-build-api</artifactId>
+			<version>0.0.7</version>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>force-install</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>install</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-plugin-plugin</artifactId>
+			    <version>3.8.1</version>
+			</plugin>
+		</plugins>
+	</build>
+</project>

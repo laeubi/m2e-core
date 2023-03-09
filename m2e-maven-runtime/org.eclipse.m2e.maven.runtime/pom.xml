@@ -19,7 +19,7 @@
 	</parent>
 
 	<artifactId>org.eclipse.m2e.maven.runtime</artifactId>
-	<version>3.8.701-SNAPSHOT</version>
+	<version>3.8.702-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>M2E Embedded Maven Runtime (includes Incubating components)</name>
@@ -32,8 +32,6 @@
 			bundle. So make sure the following variable has the value of the maven-resolver-* jars
 			https://bugs.eclipse.org/bugs/show_bug.cgi?id=529540 -->
 		<maven-resolver.version>1.6.3</maven-resolver.version>
-		<!-- below are m2e-specific addons -->
-		<plexus-build-api.version>0.0.7</plexus-build-api.version>
 		<okhttp-connector.version>0.17.8</okhttp-connector.version>
 	</properties>
 
@@ -76,10 +74,17 @@
 			<groupId>org.eclipse.sisu</groupId>
 			<artifactId>org.eclipse.sisu.plexus</artifactId>
 		</dependency>
+		<!-- the legacy plexus build API (old group/packages) -->
 		<dependency>
 			<groupId>org.sonatype.plexus</groupId>
 			<artifactId>plexus-build-api</artifactId>
-			<version>${plexus-build-api.version}</version>
+			<version>0.0.7</version>
+		</dependency>
+		<!-- the release v1 plexus build API (new group/packages) only -->
+		<dependency>
+			<groupId>org.codehaus.plexus</groupId>
+			<artifactId>plexus-build-api</artifactId>
+			<version>1.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>io.takari.aether</groupId>
