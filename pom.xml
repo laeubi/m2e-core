@@ -39,6 +39,7 @@
 	<modules>
 		<module>target-platform</module>
 
+		<module>org.eclipse.m2e.tests.plugin</module>
 		<module>m2e-maven-runtime</module>
 
 		<module>org.eclipse.m2e.model.edit</module>
@@ -106,7 +107,7 @@
 		<dependency>
 			<groupId>org.eclipse.m2e</groupId>
 			<artifactId>org.eclipse.m2e.maven.runtime</artifactId>
-			<version>3.8.701-SNAPSHOT</version>
+			<version>3.8.702-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 
