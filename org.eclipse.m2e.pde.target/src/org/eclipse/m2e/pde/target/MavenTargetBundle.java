@@ -16,17 +16,20 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Properties;
 import java.util.jar.Manifest;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.maven.RepositoryUtils;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.equinox.frameworkadmin.BundleInfo;
+import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.pde.core.target.TargetBundle;
 
 import aQute.bnd.osgi.Analyzer;
@@ -115,8 +118,61 @@ public class MavenTargetBundle extends TargetBundle {
 		return artifact;
 	}
 
+	@SuppressWarnings("removal")
 	public static TargetBundle getWrappedArtifact(Artifact artifact, Properties bndInstructions, File wrappedFile)
 			throws Exception {
+		System.out.println("---- " + artifact + " ----");
+		// TODO must be passed in!
+//		IMaven maven = MavenPlugin.getMaven();
+//		List<ArtifactRepository> repositories = maven.getArtifactRepositories();
+//		maven.execute(new ICallable<Void>() {
+//
+//			@Override
+//			public Void call(IMavenExecutionContext context, IProgressMonitor monitor) throws CoreException {
+//				// TODO Auto-generated method stub
+//				CollectRequest collectRequest = new CollectRequest();
+//				collectRequest.setRoot(new Dependency(artifact, null));
+//				collectRequest.setRepositories(RepositoryUtils.toRepos(repositories));
+//				DependencyRequest dependencyRequest = new DependencyRequest();
+//				RepositorySystem repoSystem = MavenPluginActivator.getDefault().getRepositorySystem();
+//				DependencyNode node;
+//				try {
+//					node = repoSystem.collectDependencies(context.getRepositorySession(), collectRequest).getRoot();
+//					dependencyRequest.setRoot(node);
+//					TreeDependencyVisitor nlg = new TreeDependencyVisitor(new DependencyVisitor() {
+//
+//						@Override
+//						public boolean visitLeave(DependencyNode node) {
+//							return true;
+//						}
+//
+//						@Override
+//						public boolean visitEnter(DependencyNode node) {
+//							System.out.println("enter: " + node);
+//							return true;
+//						}
+//					});
+//					node.accept(nlg);
+//				} catch (DependencyCollectionException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//				return null;
+//			}
+//		}, null);
+		// FIXME
+		try {
+			long start = System.currentTimeMillis();
+			Path wrappedBundle = WrapManager.getWrappedBundle(artifact, always -> bndInstructions,
+				RepositoryUtils.toRepos(MavenPlugin.getMaven().getArtifactRepositories()));
+			TargetBundle targetBundle = new TargetBundle(wrappedBundle.toFile());
+			System.out.println("Wrapping takes " + (System.currentTimeMillis() - start) + "ms --> " + wrappedBundle);
+			return targetBundle;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+
 		File artifactFile = artifact.getFile();
 		File instructionsFile = new File(wrappedFile.getParentFile(),
 				FilenameUtils.getBaseName(wrappedFile.getName()) + ".xml");
