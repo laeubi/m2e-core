@@ -23,4 +23,33 @@
 	      </newWizardShortcut>
 	   </perspectiveExtension>
 	</extension>
+ <extension
+       point="org.eclipse.ui.editors.documentProviders">
+    <provider
+          class="org.eclipse.m2e.pde.ui.target.provider.DocumentProvider"
+          id="org.eclipse.m2e.pde.ui.provider1"
+          inputTypes="org.eclipse.m2e.pde.ui.target.editor.BndInstructionsEditorInput">
+    </provider>
+ </extension>
+ <extension
+       point="org.eclipse.core.filebuffers.documentSetup">
+    <participant
+          class="org.eclipse.m2e.pde.ui.BndDocumentSetupParticipant"
+          contentTypeId="org.eclipse.pde.targetFile">
+    </participant>
+ </extension>
+ <extension
+       point="org.eclipse.ui.genericeditor.contentAssistProcessors">
+    <contentAssistProcessor
+          class="org.eclipse.m2e.pde.ui.ContentAssistProcessor1"
+          contentType="org.eclipse.pde.targetFile">
+    </contentAssistProcessor>
+ </extension>
+ <extension
+       point="org.eclipse.ui.genericeditor.presentationReconcilers">
+    <presentationReconciler
+          class="org.eclipse.m2e.pde.ui.PresentationReconciler1"
+          contentType="org.eclipse.pde.targetFile">
+    </presentationReconciler>
+ </extension>
 </plugin>

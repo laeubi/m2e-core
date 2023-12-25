@@ -14,10 +14,11 @@ package org.eclipse.m2e.pde.ui.target.editor;
 
 import java.util.Objects;
 
+import org.eclipse.core.runtime.Adapters;
 import org.eclipse.jface.dialogs.DialogTray;
 import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.IWizardContainer;
 import org.eclipse.jface.wizard.Wizard;
@@ -35,7 +36,10 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 import aQute.bnd.osgi.Analyzer;
 
@@ -59,28 +63,44 @@ public class MavenArtifactInstructionsWizard extends Wizard {
 				composite.setLayout(new GridLayout(1, true));
 				Button buttonInherit = new Button(composite, SWT.CHECK);
 				buttonInherit.setText(Messages.MavenArtifactInstructionsWizard_3);
-				Text textField = new Text(composite, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
-				textField.setFont(JFaceResources.getTextFont());
+				@SuppressWarnings("restriction")
+				ITextEditor editor = new org.eclipse.ui.internal.genericeditor.ExtensionBasedTextEditor();
+				try {
+					IEditorPart editorPart = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
+							.getActiveEditor();
+					// PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getEditorReferences()
+					editor.init(editorPart.getEditorSite(), new BndInstructionsEditorInput());
+				} catch (PartInitException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				editor.createPartControl(composite);
+//				Text textField = new Text(composite, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+//				textField.setFont(JFaceResources.getTextFont());
 				GridData layoutData = new GridData(GridData.FILL_BOTH);
-				textField.setLayoutData(layoutData);
+				Control editConrol = Adapters.adapt(editor, Control.class);
+				editConrol.setLayoutData(layoutData);
 				layoutData.heightHint = 100;
 				Link link = new Link(composite, SWT.NONE);
 				link.setText(String.format(Messages.MavenArtifactInstructionsWizard_4, BND_PAGE));
 				link.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> Program.launch(e.text)));
+				IDocument document = editor.getDocumentProvider().getDocument(null);
 				if (usedefaults) {
-					textField.setText(BNDInstructions.DEFAULT_INSTRUCTIONS);
+					document.set(BNDInstructions.DEFAULT_INSTRUCTIONS);
+//					textField.setText(BNDInstructions.DEFAULT_INSTRUCTIONS);
 				} else {
-					textField.setText(instructions);
+//					textField.setText(instructions);
+					document.set(instructions);
 				}
 				buttonInherit.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
 						boolean selection = buttonInherit.getSelection();
 						usedefaults = selection;
-						textField.setEnabled(!selection);
+					editConrol.setEnabled(!selection);
 						link.setEnabled(!selection);
 				}));
-				textField.addModifyListener(e -> instructions = textField.getText());
+//				textField.addModifyListener(e -> instructions = textField.getText());
 				buttonInherit.setSelection(usedefaults);
-				textField.setEnabled(!buttonInherit.getSelection());
+				editConrol.setEnabled(!buttonInherit.getSelection());
 				link.setEnabled(!buttonInherit.getSelection());
 				setControl(composite);
 			}

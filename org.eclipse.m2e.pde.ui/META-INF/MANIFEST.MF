@@ -14,10 +14,17 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="3.19.0",
  org.eclipse.core.databinding;bundle-version="1.10.100",
  org.eclipse.jface.databinding;bundle-version="1.12.200",
  org.eclipse.core.databinding.property;bundle-version="1.8.100",
- org.eclipse.ui.workbench
+ org.eclipse.ui.workbench,
+ org.eclipse.ui.genericeditor,
+ org.eclipse.ui.editors,
+ org.eclipse.ui.ide,
+ org.eclipse.jface.text,
+ org.eclipse.pde.genericeditor.extension;bundle-version="1.2.0"
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: Eclipse.org - m2e
-Import-Package: aQute.bnd.osgi;version="[5.5.0,6.0.0)"
+Import-Package: aQute.bnd.osgi;version="[5.5.0,6.0.0)",
+ aQute.bnd.properties;version="2.0.0",
+ org.eclipse.jface.text.rules
 Service-Component: OSGI-INF/org.eclipse.m2e.pde.ui.target.adapter.DependencyNodeAdapterFactory.xml,
  OSGI-INF/org.eclipse.m2e.pde.ui.target.adapter.MavenTargetAdapterFactory.xml,
  OSGI-INF/org.eclipse.m2e.pde.ui.target.adapter.MavenTargetBundleAdapterFactory.xml,
