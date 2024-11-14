@@ -43,26 +43,32 @@ public class BndLemminxPlugin implements IXMLExtension {
 			@Override
 			public void onAttributeName(boolean arg0, ICompletionRequest arg1, ICompletionResponse arg2,
 					CancelChecker arg3) throws Exception {
+				logger.log(Level.INFO, "onAttributeName");
 			}
 
 			@Override
 			public void onAttributeValue(String arg0, ICompletionRequest arg1, ICompletionResponse arg2,
 					CancelChecker arg3) throws Exception {
+				logger.log(Level.INFO, "onAttributeValue");
 			}
 
 			@Override
 			public void onDTDSystemId(String arg0, ICompletionRequest arg1, ICompletionResponse arg2,
 					CancelChecker arg3) throws Exception {
+				logger.log(Level.INFO, "onDTDSystemId");
 			}
 
 			@Override
 			public void onTagOpen(ICompletionRequest arg0, ICompletionResponse arg1, CancelChecker arg2)
 					throws Exception {
+				logger.log(Level.INFO, "onTagOpen");
 			}
 
 			@Override
 			public void onXMLContent(ICompletionRequest completionRequest, ICompletionResponse response,
 					CancelChecker checker) throws Exception {
+
+				logger.log(Level.INFO, "onXMLContent");
 				try {
 					// FIXME CDATA do not trigger completion:
 					// https://github.com/eclipse/lemminx/issues/1694
