@@ -34,6 +34,7 @@
 		<jacoco.destFile>../target/jacoco.exec</jacoco.destFile>
 		<tycho.scmUrl>scm:git:https://github.com/eclipse-m2e/m2e-core.git</tycho.scmUrl>
 		<trimStackTrace>false</trimStackTrace>
+		<tycho-version>4.0.11-SNAPSHOT</tycho-version>
 	</properties>
 
 	<modules>
