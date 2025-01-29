@@ -24,7 +24,7 @@
 	<artifactId>org.eclipse.m2e.editor.lemminx</artifactId>
 	<name>M2E Maven POM File Editor (Wild Web Developer, LemMinX, LS)</name>
 	<packaging>eclipse-plugin</packaging>
-	<version>2.0.700-SNAPSHOT</version>
+	<version>2.0.800-SNAPSHOT</version>
 
 	<build>
 		<plugins>
@@ -60,7 +60,13 @@
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>tycho-packaging-plugin</artifactId>
 				<configuration>
-					<jgit.ignore>nothing</jgit.ignore> <!-- empty (whitespace needed), don't ignore pom.xml as changes in here affect payload -->
+					<!-- overrides from parent as we don't want to ignore pom changes! -->
+					<ignores>
+						<ignore>OSGI-INF/*</ignore>
+						<ignore>META-INF/ECLIPSE_.RSA</ignore>
+						<ignore>META-INF/ECLIPSE_.SF</ignore>
+						<ignore>*.md</ignore>
+					</ignores>
 				</configuration>
 			</plugin>
 		</plugins>
