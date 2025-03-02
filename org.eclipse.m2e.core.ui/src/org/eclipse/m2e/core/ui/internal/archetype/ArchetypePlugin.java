@@ -19,13 +19,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -34,6 +40,8 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.inject.Module;
 
 import org.eclipse.aether.repository.RemoteRepository;
@@ -42,6 +50,12 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.sisu.inject.DeferredClass;
+import org.eclipse.sisu.space.BeanScanning;
+import org.eclipse.sisu.space.ClassSpace;
+import org.eclipse.sisu.space.LoadedClass;
+import org.eclipse.sisu.space.SpaceModule;
+import org.eclipse.sisu.wire.WireModule;
 
 import org.codehaus.plexus.ContainerConfiguration;
 import org.codehaus.plexus.DefaultContainerConfiguration;
@@ -54,6 +68,7 @@ import org.codehaus.plexus.component.repository.exception.ComponentLookupExcepti
 import org.apache.maven.RepositoryUtils;
 import org.apache.maven.archetype.catalog.Archetype;
 import org.apache.maven.archetype.common.ArchetypeArtifactManager;
+import org.apache.maven.archetype.common.PomManager;
 import org.apache.maven.archetype.exception.UnknownArchetype;
 import org.apache.maven.archetype.metadata.ArchetypeDescriptor;
 import org.apache.maven.archetype.metadata.RequiredProperty;
@@ -76,6 +91,7 @@ import org.eclipse.m2e.core.ui.internal.archetype.ArchetypeCatalogFactory.Remote
  */
 @Component(service = ArchetypePlugin.class)
 public class ArchetypePlugin {
+  Set<String> ignored = Set.of("org/apache/maven/archetype/VelocityConfigurator.class");
 
   public static final String ARCHETYPE_PREFIX = "archetype";
 
@@ -111,26 +127,87 @@ public class ArchetypePlugin {
         bind(ILoggerFactory.class).toInstance(LoggerFactory.getILoggerFactory());
       }
     };
-    final ContainerConfiguration cc = new DefaultContainerConfiguration() //
-        .setClassWorld(new ClassWorld("plexus.core", ArchetypeArtifactManager.class.getClassLoader())) //$NON-NLS-1$
-        .setClassPathScanning(PlexusConstants.SCANNING_INDEX) //
-        .setAutoWiring(true) //
-        .setJSR250Lifecycle(true) //
-        .setName("plexus"); //$NON-NLS-1$
-    container = new DefaultPlexusContainer(cc, logginModule);
-    archetypeArtifactManager = container.lookup(ArchetypeArtifactManager.class);
-    archetypeDataSourceMap = container.lookupMap(ArchetypeDataSource.class);
-    addArchetypeCatalogFactory(
-        new ArchetypeCatalogFactory.InternalCatalogFactory(archetypeDataSourceMap.get("internal-catalog")));
-    addArchetypeCatalogFactory(
-        new ArchetypeCatalogFactory.DefaultLocalCatalogFactory(maven, archetypeDataSourceMap.get("catalog")));
-    for(ArchetypeCatalogFactory archetypeCatalogFactory : ExtensionReader.readArchetypeExtensions(this)) {
-      addArchetypeCatalogFactory(archetypeCatalogFactory);
+    try {
+      Bundle bundle = FrameworkUtil.getBundle(ArchetypeArtifactManager.class);
+      ClassSpace debugSpace = new ClassSpace() {
+
+        @Override
+        public Class<?> loadClass(String name) throws TypeNotPresentException {
+          try {
+            return bundle.loadClass(name);
+          } catch(LinkageError le) {
+            System.out.println("Can't load class " + name + ": " + le);
+            throw new TypeNotPresentException(name, le);
+          } catch(ClassNotFoundException cnf) {
+            System.out.println("Can't load class " + name + ": " + cnf);
+            throw new TypeNotPresentException(name, cnf);
+          }
+        }
+
+        @Override
+        public DeferredClass<?> deferLoadClass(String name) {
+          return new LoadedClass<>(loadClass(name));
+        }
+
+        @Override
+        public URL getResource(String name) {
+          if(ignored.contains(name)) {
+            System.out.println("Ignore " + name);
+            return null;
+          }
+          System.out.println("Get resource: " + name);
+          return bundle.getResource(name);
+        }
+
+        @Override
+        public Enumeration<URL> getResources(String name) {
+          try {
+            return bundle.getResources(name);
+          } catch(IOException ex) {
+            return Collections.emptyEnumeration();
+          }
+        }
+
+        @Override
+        public Enumeration<URL> findEntries(String path, String glob, boolean recurse) {
+          System.out
+              .println("ArchetypePlugin.activate().new ClassSpace() {...}.findEntries()" + path + " " + recurse);
+          return bundle.findEntries(null != path ? path : "/", glob, recurse);
+        }
+
+      };
+      Injector injector = Guice.createInjector(new WireModule(
+          new SpaceModule(debugSpace, BeanScanning.GLOBAL_INDEX,
+              false)));
+      PomManager pomManager = injector.getInstance(PomManager.class);
+      System.out.println(pomManager);
+    } catch(Throwable e) {
+      e.printStackTrace();
     }
     try {
-      readCatalogs();
-    } catch(IOException e) {
-      M2EUIPluginActivator.getDefault().getLog().error("Can't read catalogs!", e);
+      final ContainerConfiguration cc = new DefaultContainerConfiguration() //
+          .setClassWorld(new ClassWorld("plexus.core", ArchetypeArtifactManager.class.getClassLoader())) //$NON-NLS-1$
+          .setClassPathScanning(PlexusConstants.SCANNING_INDEX) //
+          .setAutoWiring(true) //
+          .setJSR250Lifecycle(true) //
+          .setName("plexus"); //$NON-NLS-1$
+      container = new DefaultPlexusContainer(cc, logginModule);
+      archetypeArtifactManager = container.lookup(ArchetypeArtifactManager.class);
+      archetypeDataSourceMap = container.lookupMap(ArchetypeDataSource.class);
+      addArchetypeCatalogFactory(
+          new ArchetypeCatalogFactory.InternalCatalogFactory(archetypeDataSourceMap.get("internal-catalog")));
+      addArchetypeCatalogFactory(
+          new ArchetypeCatalogFactory.DefaultLocalCatalogFactory(maven, archetypeDataSourceMap.get("catalog")));
+      for(ArchetypeCatalogFactory archetypeCatalogFactory : ExtensionReader.readArchetypeExtensions(this)) {
+        addArchetypeCatalogFactory(archetypeCatalogFactory);
+      }
+      try {
+        readCatalogs();
+      } catch(IOException e) {
+        M2EUIPluginActivator.getDefault().getLog().error("Can't read catalogs!", e);
+      }
+    } catch(Exception e) {
+      e.printStackTrace();
     }
   }
 
